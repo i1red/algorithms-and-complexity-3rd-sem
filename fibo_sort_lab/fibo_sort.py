@@ -25,6 +25,7 @@ def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
     runs_quantity = math.ceil(os.path.getsize(source_file) / (run_size * 4))
 
     distr = hor_distr(runs_quantity, files_quantity)
+    dummy_quantity = sum(distr) - runs_quantity
     dummy = []
 
     with ftools.create_temp_files(temp_files_dir, files_quantity) as files:
@@ -84,9 +85,7 @@ def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
 
                 runs_len[output] = sum(r_len for i, r_len in enumerate(runs_len) if i != output)
 
-        print(files[output].tell())
         files[output].seek(file_ptrs[output])
-        print(files[output].tell())
         with open('res.bin', 'wb') as res:
             num = ftools.read(files[output])
             while num is not None:
@@ -94,24 +93,3 @@ def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
                 num = ftools.read(files[output])
 
 
-
-
-
-fibo_sort('test.bin', 8, 6)
-
-a, b = [], []
-with open('res.bin', 'rb') as f:
-    num = ftools.read(f)
-    while num is not None:
-        a.append(num)
-        num = ftools.read(f)
-
-with open('test.bin', 'rb') as f:
-    num = ftools.read(f)
-    while num is not None:
-        b.append(num)
-        num = ftools.read(f)
-
-print(a)
-print(b)
-print(a == sorted(b))
