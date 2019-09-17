@@ -40,5 +40,5 @@ def generate_test_file(file_title: str, num_quantity: 'int > 0'):
     with open(file_title + '.bin', 'wb') as f:
         num_count = 0
         while num_count < num_quantity:
-            write(f, random.randint(-2147483648, 2147483647))
+            write(f, random.randint(-2147, 2147))
             num_count += 1
