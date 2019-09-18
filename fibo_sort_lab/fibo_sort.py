@@ -3,7 +3,8 @@ import math
 import uuid
 import fibo_sort_lab.filetools as ftools
 import fibo_sort_lab.priorityqueue as pq
-from collections import deque
+
+END = -1
 
 
 def hor_distr(runs_quantity, files_quantity):
@@ -43,8 +44,14 @@ def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
     dummy = dummy_distr(distr, runs_quantity,files_quantity)
 
     with ftools.create_temp_files(temp_files_dir, files_quantity) as files:
+        for i in range(files_quantity - 1):
+            dummy_count = 0
+            while dummy_count < dummy[i]:
+                ftools.write(files[i], END)
+                dummy_count += 1
+
         with open(source_file, 'rb') as source:
-            for i in range(len(distr)):
+            for i in range(files_quantity - 1):
                 run_count = 0
                 while run_count < distr[i] - dummy[i]:
                     chunk, j = [], 0
@@ -58,17 +65,13 @@ def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
 
                     for el in chunk:
                         ftools.write(files[i], el)
-                    del chunk
+                    ftools.write(files[i], END)
                     run_count += 1
 
 
         qu = pq.PriorityQueueBST()
 
-        runs_len = [run_size for i in range(6)]
-        el_read = [0 for i in range(files_quantity)]
         file_ptrs = [0 for i in range(files_quantity)]
-        real_runs = deque()
-        real_runs.append([run_size for i in range(6)])
 
         output = 0
         while max(distr) != 1 or distr.count(0) != len(distr) - 1:
@@ -78,48 +81,37 @@ def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
             output = distr.index(0)
 
             while min(dst for i, dst in enumerate(distr) if i != output) != 0:
-                is_dummy = [False for i in range(files_quantity)]
-                cur_dummy = 0
+                runs_ended = [False for i in range(files_quantity)]
                 for i in range(files_quantity):
                     if i != output:
-                        if dummy[i] > 0:
-                            dummy[i] -= 1
-                            is_dummy[i] = True
-                        elif el_read[i] < runs_len[i]:
-                            num = ftools.read(files[i])
-                            el_read[i] += 1
-                            if num is not None:
-                                qu.append(num, i)
-
-                if len(qu) == 0:
-                    dummy[output] += 1
-
-                counter = 0
+                        num = ftools.read(files[i])
+                        if num is None or num == END:
+                            runs_ended[i] = True
+                        else:
+                            qu.append(num, i)
 
                 while len(qu) > 0:
                     min_el_val, min_el_index = qu.pop()
                     ftools.write(files[output], min_el_val)
-                    counter += 1
-                    if el_read[min_el_index] < runs_len[min_el_index]:
+                    if not runs_ended[min_el_index]:
                         num = ftools.read(files[min_el_index])
-                        el_read[min_el_index] += 1
-                        if num is not None:
+                        if num is None or num == END:
+                            runs_ended[min_el_index] = True
+                        else:
                             qu.append(num, min_el_index)
 
+                ftools.write(files[output], END)
 
                 for i in range(files_quantity):
-                    el_read[i] = 0
                     distr[i] = distr[i] - 1 if i != output else distr[i] + 1
                     if i != output:
                         file_ptrs[i] = files[i].tell()
-
-            runs_len[output] = sum(r_len for i, r_len in enumerate(runs_len) if i != output)
 
 
         files[output].seek(file_ptrs[output])
         with open('res.bin', 'wb') as res:
             num = ftools.read(files[output])
-            while num is not None:
+            while num is not None and num != END:
                 ftools.write(res, num)
                 num = ftools.read(files[output])
 
