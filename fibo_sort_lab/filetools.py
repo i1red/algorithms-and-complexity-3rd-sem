@@ -20,6 +20,29 @@ def clear(*files):
         file.truncate()
 
 
+def cutleft(file):
+    fs, fp = 0, file.tell()
+    end = file.seek(0, 2)
+    size = end - fp
+    file.seek(fp)
+
+    while fp < end:
+        file.seek(fp)
+        byte = file.read(1)
+        fp += 1
+        file.seek(fs)
+        file.write(byte)
+        fs += 1
+
+    file.seek(0)
+    file.truncate(size)
+
+
+with open('test.txt', 'r+') as f:
+    f.seek(10)
+    cutleft(f)
+
+
 @contextmanager
 def create_temp_files(directory: str, files_quantity: 'int > 0'):
     try:
@@ -40,5 +63,5 @@ def generate_test_file(file_title: str, num_quantity: 'int > 0'):
     with open(file_title + '.bin', 'wb') as f:
         num_count = 0
         while num_count < num_quantity:
-            write(f, random.randint(-2147, 2147))
+            write(f, random.randint(0, 5000))
             num_count += 1

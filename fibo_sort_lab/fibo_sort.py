@@ -35,23 +35,6 @@ def dummy_distr(hor_distr, runs_quantity, files_quantity):
     return dummy
 
 
-class RealRuns:
-    def __init__(self, init_list):
-        self._runs, self._dummy_runs = (list(x) for x in zip(*init_list))
-
-    def __repr__(self):
-        return f'RealRuns()'
-
-    def real_runs(self, index):
-        return self._runs[index] - self._dummy_runs[index]
-
-    def set_runs(self, index, value):
-        self._runs[index] = value
-
-    def set_dummy_runs(self, index, value):
-        self._dummy_runs[index] = value
-
-
 def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
     temp_files_dir = str(uuid.uuid4().hex)
     runs_quantity = math.ceil(os.path.getsize(source_file) / (run_size * 4))
@@ -84,7 +67,8 @@ def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
         runs_len = [run_size for i in range(6)]
         el_read = [0 for i in range(files_quantity)]
         file_ptrs = [0 for i in range(files_quantity)]
-
+        real_runs = deque()
+        real_runs.append([run_size for i in range(6)])
 
         output = 0
         while max(distr) != 1 or distr.count(0) != len(distr) - 1:
