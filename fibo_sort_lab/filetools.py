@@ -1,17 +1,25 @@
 import os
 import shutil
 import random
-from contextlib import contextmanager
+import struct
+from contextlib import contextmanager, suppress
+from array import array
 
 
 def write(file, num):
-    num_bytes = int.to_bytes(num, 4, byteorder='little', signed=True)
-    file.write(num_bytes)
+    file.write(struct.pack('i', num))
 
 
 def read(file):
     num_bytes = file.read(4)
-    return int.from_bytes(num_bytes, byteorder='little', signed=True) if len(num_bytes) == 4 else None
+    return struct.unpack('i', num_bytes)[0] if len(num_bytes) == 4 else None
+
+
+def read_chunk(file, size):
+    chunk = array('i', [])
+    with suppress(EOFError):
+        chunk.fromfile(file, size)
+    return chunk
 
 
 def clear(*files):
@@ -39,7 +47,8 @@ def cutleft(*files):
         file.truncate(size)
 
 
-
+def write_array():
+    pass
 
 
 @contextmanager
