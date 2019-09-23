@@ -2,7 +2,7 @@ import os
 import shutil
 import random
 import struct
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from array import array
 
 
@@ -17,8 +17,10 @@ def read(file):
 
 def read_chunk(file, size):
     chunk = array('i', [])
-    with suppress(EOFError):
+    try:
         chunk.fromfile(file, size)
+    except:
+        pass
     return chunk
 
 
@@ -47,10 +49,6 @@ def cutleft(*files):
         file.truncate(size)
 
 
-def write_array():
-    pass
-
-
 @contextmanager
 def create_temp_files(directory: str, files_quantity: 'int > 0'):
     try:
@@ -68,6 +66,6 @@ def create_temp_files(directory: str, files_quantity: 'int > 0'):
 
 
 def generate_test_file(file_title: str, num_quantity: 'int > 0'):
-    with open(file_title + '.bin', 'wb') as f:
+    with open(file_title, 'wb') as f:
         for i in range(num_quantity):
-            write(f, random.randint(0, 5000))
+            write(f, random.randint(0, 2_147_483_647))

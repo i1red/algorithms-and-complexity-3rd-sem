@@ -1,43 +1,12 @@
 import os
 import math
 import uuid
-import fibo_sort_lab.filetools as ftools
-import fibo_sort_lab.priorityqueue as pq
+import filetools as ftools
+import priorityqueue as pq
+from arr_sort import quick_sort
 import time
-from array import array
 
 END = -1
-
-
-def merge_sort(arr):
-    if len(arr) < 2:
-        return
-
-    mid = len(arr) // 2
-    left_part, right_part = arr[:mid], arr[mid:]
-    merge_sort(left_part)
-    merge_sort(right_part)
-
-    i = j = k = 0
-    while i < len(left_part) and j < len(right_part):
-        if left_part[i] < right_part[j]:
-            arr[k] = left_part[i]
-            i += 1
-        else:
-            arr[k] = right_part[j]
-            j += 1
-        k += 1
-
-    while i < len(left_part):
-        arr[k] = left_part[i]
-        i += 1
-        k += 1
-
-    while j < len(right_part):
-        arr[k] = right_part[j]
-        j += 1
-        k += 1
-
 
 def hor_distr(runs_quantity, files_quantity):
     distribution = [0 for i in range(files_quantity)]
@@ -85,18 +54,17 @@ def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
 
         with open(source_file, 'rb') as source:
             for i in range(files_quantity - 1):
-                for run in range(distr[i] - dummy[i]):
+                for _ in range(distr[i] - dummy[i]):
                     chunk = ftools.read_chunk(source, run_size)
-                    merge_sort(chunk)
+                    quick_sort(chunk)
                     chunk.tofile(files[i])
                     ftools.write(files[i], END)
 
         part2_end = time.time()
-        print('Generated tmp files and filled them:', part2_end -part1_end, 's')
+        print('Generated tmp files and filled them:', part2_end - part1_end, 's')
 
         qu = pq.PriorityQueueBST()
-
-        file_ptrs = [0 for i in range(files_quantity)]
+        file_ptrs = [0 for _ in range(files_quantity)]
 
         output = 0
         while max(distr) != 1 or distr.count(0) != len(distr) - 1:
@@ -106,7 +74,7 @@ def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
             output = distr.index(0)
 
             while min(distr[:output] + distr[output+1:]) != 0:
-                runs_ended = [False for i in range(files_quantity)]
+                runs_ended = [False for _ in range(files_quantity)]
                 for i in range(files_quantity):
                     if i != output:
                         num = ftools.read(files[i])
@@ -136,15 +104,45 @@ def fibo_sort(source_file: str, run_size: 'int > 0', files_quantity: 'int > 2'):
         print('Sorted all elements:', part3_end - part2_end, 's')
 
         files[output].seek(file_ptrs[output])
-        with open('res.bin', 'wb') as res:
+
+        res_file = str(uuid.uuid4().hex) + '.bin'
+        with open(res_file, 'wb') as res:
             num = ftools.read(files[output])
             while num is not None and num != END:
                 ftools.write(res, num)
                 num = ftools.read(files[output])
 
         part4_end = time.time()
-        print('Written to res file:' ,part4_end - part3_end, 's')
+        print('Written to res file:', part4_end - part3_end, 's')
         print('Total:', part4_end - part1_end, 's')
+        return res_file
 
 
+def test_fibo_sort(el_q, run_s, file_q):
+    print(f'TESTING FIBONACCI SORT: el_q={el_q}, run_s={run_s}, file_q={file_q}')
 
+    test_file = 'test_files/test.bin'
+    ftools.generate_test_file(test_file, el_q)
+    res_file = fibo_sort(test_file, run_s, file_q)
+    start_el, sort_el = [], []
+    with open(test_file, 'rb') as test:
+        num = ftools.read(test)
+        while num is not None:
+            start_el.append(num)
+            num = ftools.read(test)
+
+    with open(res_file, 'rb') as res:
+        num = ftools.read(res)
+        while num is not None:
+            sort_el.append(num)
+            num = ftools.read(res)
+
+    os.remove(test_file)
+    os.remove(res_file)
+
+    print('OK' if sorted(start_el) == sort_el else 'FAILED')
+
+
+test_fibo_sort(1_500_000, 10_000, 3)
+
+print(f"Res file: {fibo_sort('test_files/15mb.bin', 20000, 8)}")
