@@ -134,5 +134,5 @@ def test_poly_phase(el_q, run_s):
     print('OK' if sorted(start_el) == sort_el else 'FAILED')
 
 
-test_poly_phase(1_500_000, 10000)
-print(f"Res file: {poly_phase_sort('test_files/15mb.bin', 20000)}")
+test_poly_phase(1_000_000, 500)
+#print(f"Res file: {poly_phase_sort('test_files/15mb.bin', 20000)}")

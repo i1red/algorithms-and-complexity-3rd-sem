@@ -143,6 +143,6 @@ def test_fibo_sort(el_q, run_s, file_q):
     print('OK' if sorted(start_el) == sort_el else 'FAILED')
 
 
-test_fibo_sort(1_500_000, 10_000, 3)
+test_fibo_sort(1_000_000, 500, 5)
 
-print(f"Res file: {fibo_sort('test_files/15mb.bin', 20000, 8)}")
+#print(f"Res file: {fibo_sort('test_files/15mb.bin', 20000, 8)}")

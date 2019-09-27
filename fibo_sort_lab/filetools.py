@@ -67,5 +67,6 @@ def create_temp_files(directory: str, files_quantity: 'int > 0'):
 
 def generate_test_file(file_title: str, num_quantity: 'int > 0'):
     with open(file_title, 'wb') as f:
-        for i in range(num_quantity):
+        for _ in range(num_quantity):
             write(f, random.randint(0, 2_147_483_647))
+
