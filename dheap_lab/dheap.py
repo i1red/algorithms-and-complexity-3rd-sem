@@ -1,63 +1,89 @@
+import random
+
 class DHeap:
-    def __init__(self, d):
-        self.heap = [6, 7, 8, 9, 9, 7, 8, 9]
-        self.d = d
+    def __init__(self, max_dgr, keys=None):
+        self.max_dgr = max_dgr
+        self.heap = [] if keys is None else keys
+        self._heapify()
 
-    def _emersion(self, i):
-        p = (i - 1) // self.d
-        while i > 0 and self.heap[p] > self.heap[i]:
-            self.heap[p], self.heap[i] = self.heap[i], self.heap[p]
-            i = p
-            p = (i - 1) // self.d
+    def __repr__(self):
+        return f'DHeap({self.max_dgr}, {self.heap})'
 
-    def _min_child(self, i):
-        if i * self.d + 1 >= len(self.heap):
+    def __bool__(self):
+        return bool(len(self.heap))
+
+    def _heapify(self):
+        for i in range((len(self.heap) - 1) // self.max_dgr, -1, -1):
+            self._immersion(i)
+
+    def _emersion(self, index):
+        prev = (index - 1) // self.max_dgr
+        while index > 0 and self.heap[index] > self.heap[prev]:
+            self.heap[prev], self.heap[index] = self.heap[index], self.heap[prev]
+            index = prev
+            prev = (index - 1) // self.max_dgr
+
+    def _immersion(self, index):
+        nx = self._max_child(index)
+        while nx > 0 and self.heap[index] < self.heap[nx]:
+            self.heap[nx], self.heap[index] = self.heap[index], self.heap[nx]
+            index = nx
+            nx = self._max_child(index)
+
+    def _max_child(self, index):
+        nx = index * self.max_dgr + 1
+        if nx >= len(self.heap):
             return 0
 
-        s = i * self.d + 1
-        min_key = self.heap[s]
-        last = (i + 1) * self.d
-
+        max_key = self.heap[nx]
+        last = (index + 1) * self.max_dgr
         if last >= len(self.heap):
             last = len(self.heap) - 1
 
-        for j in range(s + 1, last + 1):
-            if self.heap[j] < min_key:
-                min_key, s = self.heap[j], j
+        for i in range(nx + 1, last + 1):
+            if self.heap[i] > max_key:
+                max_key, nx = self.heap[i], i
 
-        return s
+        return nx
 
-    def _immersion(self, i):
-        s = self._min_child(i)
-        while s > 0 and self.heap[i] > self.heap[s]:
-            self.heap[i], self.heap[s] = self.heap[s], self.heap[i]
-            i = s
-            s = self._min_child(i)
+    def extract_max(self):
+        max = self.heap[0]
+        self.heap[0] = self.heap[-1]
+        self.heap.pop()
+        self._immersion(0)
+        return max
 
-    def insert(self, value):
-        self.heap.append(value)
+    def insert(self, key):
+        self.heap.append(key)
         self._emersion(len(self.heap) - 1)
 
-    def pop(self, i):
-        self.heap[i] = self.heap[-1]
-        self.heap.pop()
-        if i > 0 and self.heap[i] < self.heap[(i - 1) // self.d]:
-            self._emersion(i)
-        else:
-            self._immersion(i)
+    def increase_key(self, index, value):
+        self.heap[index] += value
+        self._emersion(index)
 
-    def decrease_key(self, i, k):
-        self.heap[i] -= k
-        self._emersion(i)
 
-    def _heapify(self):
-        for i in range((len(self.heap) - 1) // self.d, -1, -1):
-            self._immersion(i)
 
-a = DHeap(3)
-a.decrease_key(2, 3)
-print(a.heap)
-import random
-random.shuffle(a.heap)
-a._heapify()
-print(a.heap)
+def test_dheap():
+    max_dgr = random.randint(2, 10)
+    init_el_q = random.randint(1200, 2000)
+    extractions_q = random.randint(100, 200)
+    insertions_q = random.randint(100, 200)
+    init_list = [random.randint(-500, 500) for _ in range(init_el_q)]
+    print(f'TEST DHEAP: max_dgr={max_dgr}, init_el_q={init_el_q}, extractions_q={extractions_q}, insertions_q={insertions_q}')
+
+    my_heap = DHeap(max_dgr, init_list)
+    for _ in range(extractions_q):
+        my_heap.extract_max()
+
+    for _ in range(insertions_q):
+        my_heap.insert(random.randint(-300, 300))
+
+    res_list = []
+    while my_heap:
+        res_list.append(my_heap.extract_max())
+
+    expected = sorted(res_list,reverse=True)
+    print('OK' if res_list == expected else 'FAILED')
+
+
+test_dheap()
